@@ -1,0 +1,5 @@
+/home/florin/Proiect_SCD/job-service/src/main/java/com/example/jobservice/JobServiceApplication.java
+/home/florin/Proiect_SCD/job-service/src/main/java/com/example/jobservice/config/RedisConfig.java
+/home/florin/Proiect_SCD/job-service/src/main/java/com/example/jobservice/controller/JobController.java
+/home/florin/Proiect_SCD/job-service/src/main/java/com/example/jobservice/dto/JobDto.java
+/home/florin/Proiect_SCD/job-service/src/main/java/com/example/jobservice/service/JobService.java

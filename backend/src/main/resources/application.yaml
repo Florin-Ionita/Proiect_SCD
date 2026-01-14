@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+spring:
+  mongodb:
+    uri: mongodb://user:password@localhost:27017/userdb?authSource=admin
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # URL-ul către Keycloak Realm
+          issuer-uri: http://localhost:8080/realms/JobAppRealm
+          # Setarea pentru a extrage rolurile corect (Keycloak le pune specific)
+          jwk-set-uri: http://localhost:8080/realms/JobAppRealm/protocol/openid-connect/certsmongodb

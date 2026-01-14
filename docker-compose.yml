@@ -1,0 +1,143 @@
+
+services:
+  keycloak-db:
+    image: postgres:15
+    container_name: keycloak-postgres
+    volumes:
+      - keycloak_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    networks:
+      - job-app-network
+
+  # 2. Serviciul Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.0
+    container_name: keycloak-server
+    command: start-dev # 'start-dev' e ok pentru development. În producție folosești 'start' optimizat
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin        # Userul de super-admin
+      KEYCLOAK_ADMIN_PASSWORD: admin # Parola de super-admin
+      KC_HTTP_PORT: 8080           # Port intern
+      KC_HOSTNAME_URL: http://localhost:8080
+    ports:
+      - "8080:8080" # Mapăm portul 8080 local la 8080 container
+    depends_on:
+      - keycloak-db
+    networks:
+      - job-app-network
+
+  rabbitmq: 
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - job-app-network
+
+  notification-service:
+    build:
+      context: ./notification-service
+      target: build
+    container_name: notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+    depends_on:
+      - rabbitmq
+    networks:
+      - job-app-network
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+    networks:
+      - job-app-network
+  backend:
+    build:
+      context: ./backend
+      target: build
+    container_name: backend
+    ports:
+      - "8081:8081"
+      - "5005:5005" # Port pentru debug Java
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://user:password@mongo:27017/userdb?authSource=admin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080/realms/JobAppRealm
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/JobAppRealm/protocol/openid-connect/certs
+      JOB_SERVICE_URL: http://job-service:8082
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    volumes:
+      - ./backend:/app # Mapăm codul sursă local în container
+      - /app/target # Evităm conflictele de build între host și container
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    depends_on:
+      - mongo
+      - keycloak
+      - job-service
+      - rabbitmq
+    networks:
+      - job-app-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - job-app-network
+
+  job-service:
+    build:
+      context: ./job-service
+    # Nu punem container_name fix dacă vrem replicare (ex: job-service-1, job-service-2)
+    # Dar pentru development simplu e ok. Dacă vrei replicare, scoate container_name.
+    # Userul a cerut explicit replicabil.
+    ports:
+      - "8082-8085:8082" # Expunem un range de porturi pentru a permite replicile
+    environment:
+      SPRING_REDIS_HOST: redis
+    depends_on:
+      - redis
+    networks:
+      - job-app-network
+    deploy:
+      replicas: 1 # Pornim cu 1, dar putem scala cu `docker-compose up --scale job-service=3`
+
+  frontend:
+    build:
+      context: ./frontend/frontend
+      target: development
+    container_name: frontend
+    ports:
+      - "3000:3000" # Mapăm portul local 3000 la portul intern Vite 3000
+    volumes:
+      - ./frontend/frontend:/app # Mapăm sursa pentru update instant
+      - /app/node_modules # Păstrăm modulele instalate în container
+    command: npm run dev -- --host # Pornim serverul de dev care acceptă conexiuni externe
+    depends_on:
+      - backend
+    networks:
+      - job-app-network
+
+volumes:
+  keycloak_data:
+
+networks:
+  job-app-network:
+    driver: bridge
