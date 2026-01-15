@@ -4,7 +4,7 @@ import type { UserProfile } from "../types";
 import type { Preferences } from "../types";
 import keycloak from "../keycloak";
 
-const API_BACKEND = "http://localhost:8081/api/users";
+const API_BACKEND = "/api/users";
 
 const ProfilePage = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);

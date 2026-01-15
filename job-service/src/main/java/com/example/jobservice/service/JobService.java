@@ -33,7 +33,7 @@ public class JobService {
             if (response != null && response.getData() != null) {
                 return response.getData().stream()
                     .map(this::mapToJobDto)
-                    .limit(20) // Limităm la 20 de joburi pentru demo
+                    .limit(100) // Limităm la 100 de joburi pentru demo
                     .collect(Collectors.toList());
             }
         } catch (Exception e) {

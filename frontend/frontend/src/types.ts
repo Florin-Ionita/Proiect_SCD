@@ -25,3 +25,11 @@ export interface UserProfile {
   preferences?: Preferences;
   jobs?: any[]; // Applied jobs
 }
+
+export interface NotificationLog {
+  id: string;
+  recipientEmail: string;
+  subject: string;
+  body: string;
+  sentAt: string;
+}

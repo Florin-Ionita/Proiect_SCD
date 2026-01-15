@@ -2,6 +2,7 @@ package com.example.userservice.controller;
 
 import com.example.userservice.model.User;
 import com.example.userservice.model.Preferences;
+import com.example.userservice.model.NotificationLog;
 import com.example.userservice.model.Job;
 import com.example.userservice.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,24 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('APP_ADMIN')") 
     public List<User> getAllUsers() {
-        return userService.getAllUsers();
+        try {
+            return userService.getAllUsers();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    // GET /api/users/notifications -> List all notifications (ADMIN only)
+    @GetMapping("/notifications")
+    @PreAuthorize("hasRole('APP_ADMIN')") 
+    public List<NotificationLog> getAllNotifications() {
+        try {
+            return userService.getAllNotifications();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     // --- GENERAL USER ROUTES (pe bază de ID) ---

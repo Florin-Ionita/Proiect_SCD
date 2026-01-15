@@ -1,8 +1,10 @@
 package com.example.userservice.service;
 
 import com.example.userservice.model.Job;
+import com.example.userservice.model.NotificationLog;
 import com.example.userservice.model.Preferences;
 import com.example.userservice.model.User;
+import com.example.userservice.repository.NotificationRepository;
 import com.example.userservice.repository.UserRepository;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,12 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
     private final NotificationProducer notificationProducer;
 
-    public UserService(UserRepository userRepository, NotificationProducer notificationProducer) {
+    public UserService(UserRepository userRepository, NotificationRepository notificationRepository, NotificationProducer notificationProducer) {
         this.userRepository = userRepository;
+        this.notificationRepository = notificationRepository;
         this.notificationProducer = notificationProducer;
     }
 
@@ -86,29 +90,46 @@ public class UserService {
 
         return userRepository.save(user);
     }
-    public Preferences getUserPreferences(String keycloakId) {
-        User user = userRepository.findByKeycloakId(keycloakId)
+    public Preferences getUserPreferences(String id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return user.getPreferences();
     }
 
-    public User updateUserPreferences(String keycloakId, Preferences preferences) {
-        User user = userRepository.findByKeycloakId(keycloakId)
+    public User updateUserPreferences(String id, Preferences preferences) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setPreferences(preferences);
+        
+        // Trimitem notificare
+        NotificationProducer.NotificationRequest notification = new NotificationProducer.NotificationRequest(
+            user.getEmail(),
+            "Profile Update Confirmation",
+            "Your profile preferences have been successfully updated."
+        );
+        notificationProducer.sendNotification(notification);
+
+        // Salvăm notificarea în baza de date pentru Admin Log
+        NotificationLog log = new NotificationLog();
+        log.setRecipientEmail(user.getEmail());
+        log.setSubject(notification.getSubject());
+        log.setBody(notification.getBody());
+        log.setSentAt(LocalDateTime.now().toString());
+        notificationRepository.save(log);
+        
         return userRepository.save(user);
     }
 
-    public User deleteUserPreferences(String keycloakId) {
-        User user = userRepository.findByKeycloakId(keycloakId)
+    public User deleteUserPreferences(String id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setPreferences(null);
         return userRepository.save(user);
     }
 
-    public User applyToJob(String keycloakId, Job job) {
-        User user = userRepository.findByKeycloakId(keycloakId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + keycloakId));
+    public User applyToJob(String id, Job job) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
         
         // Setăm data aplicării
         job.setAppliedAt(LocalDateTime.now().toString());
@@ -118,16 +139,24 @@ public class UserService {
         // Trimitem notificare
         NotificationProducer.NotificationRequest notification = new NotificationProducer.NotificationRequest(
             user.getEmail(),
-            "Job Application Confirmation",
+            "Job application to " + job.getCompany() + " confirmed",
             "You have successfully applied to " + job.getTitle() + " at " + job.getCompany()
         );
         notificationProducer.sendNotification(notification);
 
+        // Salvăm notificarea în baza de date pentru Admin Log
+        NotificationLog log = new NotificationLog();
+        log.setRecipientEmail(user.getEmail());
+        log.setSubject(notification.getSubject());
+        log.setBody(notification.getBody());
+        log.setSentAt(LocalDateTime.now().toString());
+        notificationRepository.save(log);
+
         return userRepository.save(user);
     }
     
-    public void deleteUser(String keycloakId) {
-        User user = userRepository.findByKeycloakId(keycloakId)
+    public void deleteUser(String id) {
+        User user = userRepository.findById(id)
                  .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(user);
     }
@@ -135,9 +164,13 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+    
+    public List<NotificationLog> getAllNotifications() {
+        return notificationRepository.findAll();
+    }
 
-    public User getUserById(String keycloakId) {
-        return userRepository.findByKeycloakId(keycloakId)
+    public User getUserById(String id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
