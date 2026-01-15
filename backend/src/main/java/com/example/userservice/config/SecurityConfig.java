@@ -30,7 +30,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // CSRF nu e necesar pentru API-uri stateless
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/public/**").permitAll() // Rute publice
                 // Restul rutelor sunt securizate direct în Controllere folosind adnotări
@@ -43,7 +43,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // AICI ESTE LOGICA DE ROLURI
+    // LOGICA DE ROLURI
     // Această metodă extrage rolurile din JSON-ul de la Keycloak și le face înțelese de Spring
     @Bean
     public Converter<Jwt, AbstractAuthenticationToken> jwtAuthenticationConverter() {
@@ -85,7 +85,7 @@ class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthorit
         List<String> roles = (List<String>) realmAccess.get("roles");
 
         return roles.stream()
-                .map(roleName -> "ROLE_" + roleName.toUpperCase()) // <--- AICI ESTE SCHIMBAREA (toUppperCase)
+                .map(roleName -> "ROLE_" + roleName.toUpperCase()) 
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }

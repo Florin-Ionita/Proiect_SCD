@@ -31,7 +31,7 @@ class JobServiceCachingTest {
 
     @Test
     void testCaching_MultipleCalls_TriggerOnlyOneApiRequest() {
-        // Arrange: Pregătim un răspuns mock de la API
+        // Arrange: Pregatim un raspuns mock de la API
         JobService.ArbeitnowResponse mockResponse = new JobService.ArbeitnowResponse();
         List<JobService.ArbeitnowJob> jobs = new ArrayList<>();
         JobService.ArbeitnowJob job1 = new JobService.ArbeitnowJob();
@@ -46,14 +46,14 @@ class JobServiceCachingTest {
         when(restTemplate.getForObject(anyString(), eq(JobService.ArbeitnowResponse.class)))
                 .thenReturn(mockResponse);
 
-        // Curățăm cache-ul înainte de test pentru a fi siguri
+        // Curatam cache-ul inainte de test pentru a fi siguri
         cacheManager.getCache("jobs").clear();
 
-        // Act 1: Primul apel -> Ar trebui să execute metoda și să apeleze RestTemplate
+        // Primul apel ar trebui sa execute metoda si sa apeleze RestTemplate
         System.out.println("--- Apel 1 ---");
         List<JobDto> result1 = jobService.fetchJobs();
 
-        // Act 2: Al doilea apel -> Ar trebui să vină din Cache, fără a apela RestTemplate
+        // Al doilea apel ar trebui sa vina din Cache, fara a apela RestTemplate
         System.out.println("--- Apel 2 ---");
         List<JobDto> result2 = jobService.fetchJobs();
 
@@ -63,8 +63,8 @@ class JobServiceCachingTest {
         assertEquals("Cached Dev", result1.get(0).getTitle());
         assertEquals("Cached Dev", result2.get(0).getTitle());
 
-        // Verificăm esența caching-ului: 
-        // Metoda 'getForObject' a RestTemplate a fost apelată exact O DATĂ (doar la primul apel)
+        // Verificam esenta caching-ului: 
+        // Metoda 'getForObject' a RestTemplate a fost apelata exact O DATA (doar la primul apel)
         verify(restTemplate, times(1)).getForObject(anyString(), eq(JobService.ArbeitnowResponse.class));
     }
 }

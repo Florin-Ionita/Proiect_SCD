@@ -18,7 +18,6 @@ public class User {
     @Id
     private String id; // Mongo DB ID intern
     
-    // Indexăm acest câmp pentru performanță la căutare
     private String keycloakId; // UUID-ul din Keycloak (sub)
 
     private String username; // preferred_username
@@ -30,10 +29,8 @@ public class User {
 
     private Preferences preferences; 
     
-    // Inițializăm lista ca să nu fie null niciodată
     private List<Job> appliedJobs = new ArrayList<>(); 
 
-    // Metodă de conveniență 
     public void addJob(Job job) {
         if (this.appliedJobs == null) {
             this.appliedJobs = new ArrayList<>();

@@ -86,13 +86,13 @@ const HomePage = () => {
         }
 
         try {
-            // 1. Get current user to know Mongo ID
+            // Get current user to know Mongo ID
             const userResponse = await axios.get<UserProfile>(`${API_BACKEND}/me`, {
                 headers: { Authorization: `Bearer ${keycloak.token}` }
             });
             const userId = userResponse.data.id;
 
-            // 2. Apply to job
+            // Apply to job
             await axios.post(`${API_BACKEND}/${userId}/jobs`, {
                 externalId: job.id,
                 title: job.title,
@@ -110,7 +110,7 @@ const HomePage = () => {
         }
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <p style={{ color: 'var(--primary-color)' }}>Loading data...</p>;
 
     // --- ADMIN VIEW ---
     if (isAdmin) {
@@ -122,68 +122,85 @@ const HomePage = () => {
         );
 
         return (
-            <div style={{ padding: "2rem" }}>
-                <h2>Admin Dashboard</h2>
+            <div>
+                <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--accent-orange)' }}>Admin Dashboard</h2>
                 
-                <h3>All Users</h3>
-                <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "2rem" }}>
-                    <thead>
-                        <tr style={{ backgroundColor: "#f5f5f5", textAlign: "left" }}>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Username</th>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Email</th>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>First Name</th>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Last Name</th>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.map(user => (
-                            <tr key={user.id}>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.username}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.email}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.firstName}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{user.lastName}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                                    <button 
-                                        onClick={() => handleDeleteUser(user.id)}
-                                        style={{ backgroundColor: "#ff4444", color: "white", padding: "5px 10px", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                <h3>Notifications Log</h3>
-                <div style={{ marginBottom: "1rem" }}>
-                    <input 
-                        type="text" 
-                        placeholder="Search logs..." 
-                        value={notificationSearch}
-                        onChange={(e) => setNotificationSearch(e.target.value)}
-                        style={{ padding: "8px", width: "300px" }}
-                    />
+                <div className="glass-panel" style={{ marginBottom: '3rem' }}>
+                    <h3 style={{ marginTop: 0 }}>Users</h3>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Username</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Email</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>First Name</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Last Name</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map(user => (
+                                    <tr key={user.id} style={{ background: 'rgba(255,255,255,0.4)' }}>
+                                        <td style={{ padding: '1rem', borderRadius: '12px 0 0 12px' }}>{user.username}</td>
+                                        <td style={{ padding: '1rem' }}>{user.email}</td>
+                                        <td style={{ padding: '1rem' }}>{user.firstName}</td>
+                                        <td style={{ padding: '1rem' }}>{user.lastName}</td>
+                                        <td style={{ padding: '1rem', borderRadius: '0 12px 12px 0' }}>
+                                            <button 
+                                                onClick={() => handleDeleteUser(user.id)}
+                                                style={{ 
+                                                    backgroundColor: "#ef4444", 
+                                                    color: 'white',
+                                                    padding: "0.5rem 1rem", 
+                                                    fontSize: "0.85rem",
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)'
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                    <thead>
-                        <tr style={{ backgroundColor: "#f5f5f5", textAlign: "left" }}>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>To</th>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Subject</th>
-                            <th style={{ padding: "10px", border: "1px solid #ddd" }}>Sent At</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredNotifications.map(notif => (
-                            <tr key={notif.id}>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{notif.recipientEmail}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{notif.subject}</td>
-                                <td style={{ padding: "10px", border: "1px solid #ddd" }}>{new Date(notif.sentAt).toLocaleString()}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+
+                <div className="glass-panel">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+                        <h3 style={{ margin: 0 }}>Notification Logs</h3>
+                        <input 
+                            type="text" 
+                            placeholder="Search logs..." 
+                            value={notificationSearch}
+                            onChange={(e) => setNotificationSearch(e.target.value)}
+                            style={{ width: "320px" }}
+                        />
+                    </div>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Recipient</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Subject</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredNotifications.map(notif => (
+                                    <tr key={notif.id} style={{ background: 'rgba(255,255,255,0.4)' }}>
+                                        <td style={{ padding: '1rem', borderRadius: '12px 0 0 12px' }}>{notif.recipientEmail}</td>
+                                        <td style={{ padding: '1rem' }}>{notif.subject}</td>
+                                        <td style={{ padding: '1rem', borderRadius: '0 12px 12px 0' }}>{new Date(notif.sentAt).toLocaleString()}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -212,45 +229,49 @@ const HomePage = () => {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
-            <h2>Available Jobs</h2>
+        <div>
+            <h2>Find Your Next Role</h2>
             
             {/* Filter Menu */}
-            <div style={{ marginBottom: "2rem", padding: "1rem", backgroundColor: "#f9f9f9", borderRadius: "8px", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+            <div className="filter-bar">
                 <input 
                     type="text" 
-                    placeholder="Search by Title..." 
+                    placeholder="Job title..." 
                     value={jobFilters.keyword}
                     onChange={(e) => { setJobFilters({...jobFilters, keyword: e.target.value}); setCurrentPage(1); }}
-                    style={{ padding: "8px", flex: 1 }}
                 />
                 <input 
                     type="text" 
                     placeholder="Location..." 
                     value={jobFilters.location}
                     onChange={(e) => { setJobFilters({...jobFilters, location: e.target.value}); setCurrentPage(1); }}
-                    style={{ padding: "8px", flex: 1 }}
                 />
                 <input 
                     type="text" 
                     placeholder="Company..." 
                     value={jobFilters.company}
                     onChange={(e) => { setJobFilters({...jobFilters, company: e.target.value}); setCurrentPage(1); }}
-                    style={{ padding: "8px", flex: 1 }}
                 />
             </div>
 
-            <p style={{ marginBottom: "1rem" }}>Showing {displayedJobs.length} of {filteredJobs.length} jobs</p>
+            <p style={{ marginBottom: "2rem", color: "#6b7280", fontSize: "0.95rem" }}>
+                Showing {displayedJobs.length} of {filteredJobs.length} positions
+            </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
+            <div className="grid-layout">
                 {displayedJobs.map((job) => (
-                    <div key={job.id} style={{ border: "1px solid #ddd", padding: "1rem", borderRadius: "8px" }}>
+                    <div key={job.id} className="card">
                         <h3>{job.title}</h3>
-                        <p><strong>{job.company}</strong> - {job.location}</p>
-                        <div dangerouslySetInnerHTML={{ __html: job.description }} />
-                        <div style={{ marginTop: "1rem" }}>
-                            <a href={job.url} target="_blank" rel="noreferrer" style={{ marginRight: "1rem" }}>View Original</a>
-                            <button onClick={() => handleApply(job)}>Apply Now</button>
+                        <p style={{ color: "#6b7280", marginBottom: "1rem", fontSize: "0.95rem" }}>
+                            {job.company} · {job.location}
+                        </p>
+                        <div 
+                            dangerouslySetInnerHTML={{ __html: job.description }} 
+                            style={{ fontSize: "0.9rem", color: "#4b5563", maxHeight: "120px", overflow: "hidden", marginBottom: "1.5rem", lineHeight: "1.6" }} 
+                        />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "1rem", borderTop: "1px solid var(--border-color)" }}>
+                            <a href={job.url} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem" }}>View details →</a>
+                            <button onClick={() => handleApply(job)} style={{ padding: "0.6rem 1.25rem", fontSize: "0.85rem" }}>Apply</button>
                         </div>
                     </div>
                 ))}
@@ -258,21 +279,21 @@ const HomePage = () => {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-                <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center", gap: "1rem", alignItems: "center" }}>
+                <div style={{ marginTop: "3rem", display: "flex", justifyContent: "center", gap: "1rem", alignItems: "center" }}>
                     <button 
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        style={{ padding: "8px 16px" }}
+                        style={{ padding: "0.6rem 1.25rem" }}
                     >
-                        Previous
+                        ← Previous
                     </button>
-                    <span>Page {currentPage} of {totalPages}</span>
+                    <span style={{ color: "#6b7280", fontWeight: "500" }}>Page {currentPage} of {totalPages}</span>
                     <button 
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        style={{ padding: "8px 16px" }}
+                        style={{ padding: "0.6rem 1.25rem" }}
                     >
-                        Next
+                        Next →
                     </button>
                 </div>
             )}

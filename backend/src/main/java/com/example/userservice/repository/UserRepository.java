@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.Optional;
 
 public interface UserRepository extends MongoRepository<User, String> {
-    // Găsim userul după ID-ul unic din Keycloak (sub)
+    // Gasim userul dupa ID-ul unic din Keycloak
     Optional<User> findByKeycloakId(String keycloakId);
 }

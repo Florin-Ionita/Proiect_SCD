@@ -11,7 +11,7 @@ public class RedisConfig {
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
         return RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(20)) // Cache-ul expiră după 10 minute
+            .entryTtl(Duration.ofMinutes(20)) // Cache-ul expiră după 20 minute
             .disableCachingNullValues();
     }
 }

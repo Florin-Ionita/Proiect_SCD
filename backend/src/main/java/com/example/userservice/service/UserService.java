@@ -42,8 +42,7 @@ public class UserService {
         
         List<String> roles = new ArrayList<>();
         
-        // 1. Extrage Realm Roles 
-        // Filtrăm DOAR rolurile noastre specifice ("app_user", "app_admin")
+        // Extrage Realm Roles 
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
         if (realmAccess != null && realmAccess.containsKey("roles")) {
             Object rolesObj = realmAccess.get("roles");
@@ -53,7 +52,6 @@ public class UserService {
                         .filter(rolestr -> rolestr.equals("app_admin") || rolestr.equals("app_user"))
                         .collect(Collectors.toList());
 
-                // Păstrăm doar rolurile relevante aplicației
                 if (allRoles.contains("app_admin")) {
                     roles.add("app_admin");
                 }
@@ -63,22 +61,18 @@ public class UserService {
             }
         }
         
-        // Dacă nu are niciunul, putem asigna un default (opțional)
-        // if (roles.isEmpty()) roles.add("app_user");
 
         Optional<User> existingUser = userRepository.findByKeycloakId(keycloakId);
 
         User user;
         if (existingUser.isPresent()) {
             user = existingUser.get();
-             // Actualizăm datele în caz că s-au schimbat în Keycloak
             user.setEmail(email);
             user.setUsername(username);
             user.setFirstName(firstName);
             user.setLastName(lastName);
             user.setRoles(roles);
         } else {
-            // Creăm user nou
             user = new User();
             user.setKeycloakId(keycloakId);
             user.setEmail(email);
@@ -109,7 +103,7 @@ public class UserService {
         );
         notificationProducer.sendNotification(notification);
 
-        // Salvăm notificarea în baza de date pentru Admin Log
+        // Salvam notificarea in baza de date pentru Admin Log
         NotificationLog log = new NotificationLog();
         log.setRecipientEmail(user.getEmail());
         log.setSubject(notification.getSubject());
@@ -131,7 +125,7 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found: " + id));
         
-        // Setăm data aplicării
+        // Setam data aplicării
         job.setAppliedAt(LocalDateTime.now().toString());
         
         user.addJob(job);
@@ -144,7 +138,7 @@ public class UserService {
         );
         notificationProducer.sendNotification(notification);
 
-        // Salvăm notificarea în baza de date pentru Admin Log
+        // Salvam notificarea în baza de date pentru Admin Log
         NotificationLog log = new NotificationLog();
         log.setRecipientEmail(user.getEmail());
         log.setSubject(notification.getSubject());

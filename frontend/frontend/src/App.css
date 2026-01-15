@@ -1,42 +1,178 @@
-#root {
-  max-width: 1280px;
+.container {
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 40px;
+  /* background-color: var(--bg-color); Removed to show SVG background */
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Decorative background is now handled by BackgroundAnimation.tsx */
+
+/* Glassmorphism Helper */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.9); /* Increased opacity for less transparency */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
   padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
 }
 
 .card {
-  padding: 2em;
+  background: rgba(255, 255, 255, 0.95); /* Increased opacity for less transparency */
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
 }
 
-.read-the-docs {
-  color: #888;
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--primary-color); /* Removed gradient */
+}
+
+/* Removed card::after decorative element */
+
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(109, 40, 217, 0.15);
+}
+
+/* Removed card:hover::after */
+
+.card h3 {
+  margin-top: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-color);
+  border: none;
+  padding-bottom: 0;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  padding: 1.75rem;
+  background: rgba(255, 255, 255, 0.9); /* Less transparent */
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.filter-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-color); /* No gradient */
+  border-radius: 20px 20px 0 0;
+}
+
+.filter-bar input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+/* Navbar Construction */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rem;
+  padding: 1.5rem 0;
+  border-bottom: none;
+}
+
+.navbar-brand {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--primary-color); /* Solid color */
+  padding: 0;
+  transform: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar-brand::before {
+  content: '';
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color); /* Solid color */
+  border-radius: 12px;
+  transform: rotate(-10deg);
+}
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  font-weight: 600;
+  color: var(--text-color);
+  border-bottom: none;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--primary-color); /* Solid color */
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+  background: none;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Extra geometric decoration */
+.geometric-line {
+  position: fixed;
+  top: 200px;
+  right: 100px;
+  width: 200px;
+  height: 3px;
+  background: var(--accent-green);
+  transform: rotate(-45deg);
+  z-index: -1;
 }

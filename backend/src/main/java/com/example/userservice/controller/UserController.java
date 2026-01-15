@@ -52,8 +52,6 @@ public class UserController {
     }
 
     // --- GENERAL USER ROUTES (pe bază de ID) ---
-    // Aceste rute ar trebui protejate astfel încât să poți accesa doar propriul ID sau să fii admin.
-    // Dar pentru simplitate acum le lăsăm deschise autentificaților sau facem verificarea în service.
 
     // GET /api/users/{id}
     @GetMapping("/{id}")

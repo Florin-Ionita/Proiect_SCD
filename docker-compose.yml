@@ -5,9 +5,9 @@ services:
     volumes:
       - keycloak_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - db-net
     deploy:
@@ -21,15 +21,15 @@ services:
     command: start-dev
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: password
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HTTP_PORT: 8080
-      KC_HOSTNAME_URL: http://localhost:8080
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/${POSTGRES_DB}
+      KC_DB_USERNAME: ${POSTGRES_USER}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HTTP_PORT: ${KEYCLOAK_PORT}
+      KC_HOSTNAME_URL: http://localhost:${KEYCLOAK_PORT}
     ports:
-      - "8080:8080"
+      - "${KEYCLOAK_PORT}:${KEYCLOAK_PORT}"
     depends_on:
       - keycloak-db
     networks:
@@ -43,9 +43,12 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"
+      - "${RABBITMQ_MGM_PORT}:${RABBITMQ_MGM_PORT}"
     networks:
       - app-net
     deploy:
@@ -58,9 +61,12 @@ services:
       context: ./notification-service
     container_name: notification-service
     ports:
-      - "8083:8083"
+      - "${NOTIFICATION_PORT}:${NOTIFICATION_PORT}"
     environment:
       SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
     depends_on:
       - rabbitmq
     networks:
@@ -73,10 +79,10 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT}:${MONGO_PORT}"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: user
-      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     networks:
       - db-net
     deploy:
@@ -90,22 +96,20 @@ services:
       target: build
     container_name: backend
     ports:
-      - "8081:8081"
-      - "5005:5005"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      - "${BACKEND_DEBUG_PORT}:${BACKEND_DEBUG_PORT}"
     environment:
-      SPRING_DATA_MONGODB_URI: mongodb://user:password@mongo:27017/userdb?authSource=admin
-      # Issuer URI removed to avoid hostname mismatch (localhost vs keycloak)
-      # SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/JobAppRealm
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/JobAppRealm/protocol/openid-connect/certs
-      JOB_SERVICE_URL: http://job-service:8082
+      SPRING_DATA_MONGODB_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:${MONGO_PORT}/${MONGO_DB}?authSource=admin
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
+      JOB_SERVICE_URL: ${JOB_SERVICE_URL}
       SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
-      SPRING_RABBITMQ_USERNAME: guest
-      SPRING_RABBITMQ_PASSWORD: guest
+      SPRING_RABBITMQ_PORT: ${RABBITMQ_PORT}
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS}
     volumes:
       - ./backend:/app
       - /app/target
-    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:${BACKEND_DEBUG_PORT}"
     depends_on:
       - mongo
       - keycloak
@@ -124,7 +128,7 @@ services:
     image: redis:alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     networks:
       - db-net
     deploy:
@@ -135,11 +139,9 @@ services:
   job-service:
     build:
       context: ./job-service
-    # container_name: job-service # Removed for scaling (replicas > 1)
-    # ports:
-    #   - "8082:8082" # Removed to allow scaling without port conflicts. Access via Frontend (port 80)
     environment:
       SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: ${REDIS_PORT}
     depends_on:
       - redis
     networks:

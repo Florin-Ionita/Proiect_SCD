@@ -16,7 +16,6 @@ public class Job {
     private String url;        // Link spre anunțul original
     private String appliedAt;  // Data când a aplicat (stocată ca String ISO sau poți folosi LocalDateTime)
 
-    // Un constructor ajutător dacă vrei să creezi jobul rapid fără dată (o setăm manual)
     public Job(String externalId, String title, String company, String location, String url) {
         this.externalId = externalId;
         this.title = title;
